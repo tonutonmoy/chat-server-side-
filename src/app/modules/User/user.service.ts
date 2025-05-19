@@ -38,6 +38,7 @@ const registerUserIntoDB = async (payload: User) => {
 
 const getAllUsersFromDB = async (query: any) => {
   const usersQuery = new QueryBuilder(prisma.user, query);
+   
   const result = await usersQuery
     .search(['firstName', 'lastName', 'email'])
     .filter()
@@ -63,6 +64,7 @@ const getMyProfileFromDB = async (id: string) => {
       lastName: true,
       email: true,
       role: true,
+      profileImage:true,
       createdAt: true,
       updatedAt: true,
     },
@@ -72,6 +74,8 @@ const getMyProfileFromDB = async (id: string) => {
 };
 
 const getUserDetailsFromDB = async (id: string) => {
+
+ 
   const user = await prisma.user.findUniqueOrThrow({
     where: { id },
     select: {
@@ -80,6 +84,7 @@ const getUserDetailsFromDB = async (id: string) => {
       lastName: true,
       email: true,
       role: true,
+    profileImage:true,
       createdAt: true,
       updatedAt: true,
     },
@@ -87,39 +92,19 @@ const getUserDetailsFromDB = async (id: string) => {
   return user;
 };
 
-const updateMyProfileIntoDB = async (id: string, payload: any) => {
-  const userProfileData = payload.Profile;
-  delete payload.Profile;
+const updateMyProfileIntoDB = async (id: string, payload: Partial<User>) => {
 
-  const userData = payload;
-
-  // update user data
-  await prisma.$transaction(async (transactionClient: any) => {
-    // Update user data
-    const updatedUser = await transactionClient.user.update({
+  console.log(payload)
+    const userData = await prisma.user.update({
       where: { id },
-      data: userData,
+      data: payload,
     });
 
-    // Update user profile data
-    const updatedUserProfile = await transactionClient.Profile.update({
-      where: { userId: id },
-      data: userProfileData,
-    });
-
-    return { updatedUser, updatedUserProfile };
-  });
-
-  // Fetch and return the updated user including the profile
-  const updatedUser = await prisma.user.findUniqueOrThrow({
-    where: { id },
-  });
-
-  const userWithOptionalPassword = updatedUser as UserWithOptionalPassword;
-  delete userWithOptionalPassword.password;
-
-  return userWithOptionalPassword;
+    return userData;
+ 
 };
+  // Fetch and return the updated user including the profile
+
 
 const updateUserRoleStatusIntoDB = async (id: string, payload: any) => {
   const result = await prisma.user.update({

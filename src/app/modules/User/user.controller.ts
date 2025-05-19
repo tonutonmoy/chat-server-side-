@@ -17,6 +17,9 @@ const registerUser = catchAsync(async (req, res) => {
 });
 
 const getAllUsers = catchAsync(async (req, res) => {
+
+
+
   const result = await UserServices.getAllUsersFromDB(req.query);
 
   sendResponse(res, {
@@ -70,7 +73,12 @@ const getUserDetails = catchAsync(async (req, res) => {
 });
 
 const updateMyProfile = catchAsync(async (req, res) => {
-  const id = req.user.id;
+
+  const id = req.params.id;
+
+
+
+
   const result = await UserServices.updateMyProfileIntoDB(id, req.body);
 
   sendResponse(res, {

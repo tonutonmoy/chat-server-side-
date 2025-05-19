@@ -30,15 +30,15 @@ export const uploadToDigitalOceanAWS = async (
 ): Promise<UploadResponse> => {
   try {
     // Ensure the file exists before uploading
-    await fs.promises.access(file.path, fs.constants.F_OK);
+    // await fs.promises.access(file.path, fs.constants.F_OK);
 
-    const fileStream: Readable = fs.createReadStream(file.path);
+    // const fileStream: Readable = fs.createReadStream(file.path);
 
     // Prepare the upload command
     const command = new PutObjectCommand({
       Bucket: `${process.env.DO_SPACE_BUCKET}`,
       Key: `${file.originalname}`,
-      Body: fileStream,
+      Body: file.buffer,
       ACL: 'public-read',
       ContentType: file.mimetype,
     });

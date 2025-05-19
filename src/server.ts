@@ -1,33 +1,38 @@
-import { Server } from 'http';
-import app from './app';
-import seedSuperAdmin from './app/DB';
-import config from './config';
+import { Server as HTTPServer } from "http";
+import { Server as SocketIOServer } from "socket.io";
+import app from "./app";
+import config from "./config";
+import { handleSocketConnection } from "./app/socket/socketHandler";
 
 const port = config.port || 5000;
 
 async function main() {
-  const server: Server = app.listen(port, () => {
-    console.log('Sever is running on port ', port);
-    seedSuperAdmin();
+  const httpServer = new HTTPServer(app);
+
+  const io = new SocketIOServer(httpServer, {
+    cors: {
+      origin: "*",
+      credentials: true,
+    },
   });
+
+  io.on("connection", (socket) => {
+    handleSocketConnection(socket, io);
+  });
+
+  httpServer.listen(port, () => {
+    console.log(`✅ Server is running on port ${port}`);
+  });
+
   const exitHandler = () => {
-    if (server) {
-      server.close(() => {
-        console.info('Server closed!');
-      });
-    }
+    httpServer.close(() => {
+      console.info("💤 Server closed");
+    });
     process.exit(1);
   };
 
-  process.on('uncaughtException', error => {
-    console.log(error);
-    exitHandler();
-  });
-
-  process.on('unhandledRejection', error => {
-    console.log(error);
-    exitHandler();
-  });
+  process.on("uncaughtException", exitHandler);
+  process.on("unhandledRejection", exitHandler);
 }
 
 main();

@@ -18,12 +18,12 @@ router.post(
 
 router.get('/', UserControllers.getAllUsers);
 
-router.get('/me', auth('USER', 'ADMIN'), UserControllers.getMyProfile);
+router.get('/me', UserControllers.getMyProfile);
 
 router.get('/:id', UserControllers.getUserDetails);
 router.put(
-  '/update-profile',
-  auth('USER', 'ADMIN'),
+  '/update-profile/:id',
+  
   UserControllers.updateMyProfile,
 );
 router.get('/verify-email/:token', UserControllers.verifyUserEmail);
