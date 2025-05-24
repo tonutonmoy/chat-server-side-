@@ -28,7 +28,7 @@ export const handleSocketConnection = (socket: Socket, io: Server) => {
   console.log("✅ User connected:", socket.id, "UserID:", userId);
 
   // 👇 Join user's private room
-  // socket.join(userId);
+  socket.join(userId);
 
   // Notify others user is online
   io.emit("user_status", { userId, status: "online" });
