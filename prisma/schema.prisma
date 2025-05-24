@@ -8,57 +8,56 @@ datasource db {
 }
 
 model User {
-  id        String       @id @default(auto()) @map("_id") @db.ObjectId
-  firstName String
-  lastName  String
-  email     String       @unique
-  password  String
-  role      UserRoleEnum @default(USER)
-  status    UserStatus   @default(ACTIVE)
-  profileImage String?
-  otp       String?
-  otpExpiry DateTime?
+  id                      String         @id @default(auto()) @map("_id") @db.ObjectId
+  firstName               String
+  lastName                String
+  email                   String         @unique
+  password                String
+  role                    UserRoleEnum   @default(USER)
+  status                  UserStatus     @default(ACTIVE)
+  profileImage            String?
+  otp                     String?
+  otpExpiry               DateTime?
 
-  isEmailVerified               Boolean   @default(true)
-  emailVerificationToken        String?
+  isEmailVerified         Boolean        @default(true)
+  emailVerificationToken  String?
   emailVerificationTokenExpires DateTime?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  senderNotification Notification[] @relation("notificationSender")
-  reciverNotification Notification[] @relation("notificationReciver")
-  senderMessages Message[] @relation("messageSender")
-  reciverMessages Message[] @relation("messageReciver")
-
-  // 👇 Relation: 1 user -> many messages
-
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  senderNotification      Notification[] @relation("notificationSender")
+  reciverNotification     Notification[] @relation("notificationReciver")
+  senderMessages          Message[]      @relation("messageSender")
+  reciverMessages         Message[]      @relation("messageReciver")
 
   @@map("users")
-
 }
 
 model Message {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  content   String
- senderId   String @db.ObjectId
-  reciverId    String @db.ObjectId
-   sender User  @relation("messageSender",references: [id], fields: [senderId])
-  reciver User  @relation("messageReciver",references: [id], fields: [reciverId])
+  content   String?  // Made optional to allow messages with only files
+  fileUrl   String?  // New: URL to the uploaded file (image, audio, video, document)
+  fileType  String?  // New: MIME type of the uploaded file (e.g., "image/jpeg", "audio/webm")
+  senderId  String   @db.ObjectId
+  reciverId String   @db.ObjectId
+  sender    User     @relation("messageSender", references: [id], fields: [senderId])
+  reciver   User     @relation("messageReciver", references: [id], fields: [reciverId])
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt // Added updatedAt for consistency and tracking changes
 
   @@map("messages")
 }
 
 model Notification {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  senderId   String @db.ObjectId
-  reciverId    String @db.ObjectId
-   sender User  @relation("notificationSender",references: [id], fields: [senderId])
-  reciver User  @relation("notificationReciver",references: [id], fields: [reciverId])
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  senderId    String   @db.ObjectId
+  reciverId   String   @db.ObjectId
+  sender      User     @relation("notificationSender", references: [id], fields: [senderId])
+  reciver     User     @relation("notificationReciver", references: [id], fields: [reciverId])
 
-  message   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  message     String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
 
   @@map("notifications")
 }
