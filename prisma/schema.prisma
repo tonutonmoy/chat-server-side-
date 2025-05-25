@@ -8,44 +8,55 @@ datasource db {
 }
 
 model User {
-  id                      String         @id @default(auto()) @map("_id") @db.ObjectId
+  id                      String          @id @default(auto()) @map("_id") @db.ObjectId
   firstName               String
   lastName                String
-  email                   String         @unique
+  email                   String          @unique
   password                String
-  role                    UserRoleEnum   @default(USER)
-  status                  UserStatus     @default(ACTIVE)
+  role                    UserRoleEnum    @default(USER)
+  status                  UserStatus      @default(ACTIVE)
   profileImage            String?
   otp                     String?
   otpExpiry               DateTime?
 
-  isEmailVerified         Boolean        @default(true)
+  isEmailVerified         Boolean         @default(true)
   emailVerificationToken  String?
   emailVerificationTokenExpires DateTime?
 
-  createdAt               DateTime       @default(now())
-  updatedAt               DateTime       @updatedAt
-  senderNotification      Notification[] @relation("notificationSender")
-  reciverNotification     Notification[] @relation("notificationReciver")
-  senderMessages          Message[]      @relation("messageSender")
-  reciverMessages         Message[]      @relation("messageReciver")
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+  senderNotification      Notification[]  @relation("notificationSender")
+  reciverNotification     Notification[]  @relation("notificationReciver")
+  senderMessages          Message[]       @relation("messageSender")
+  reciverMessages         Message[]       @relation("messageReciver")
+
+  // New: Relations for Facebook-like features
+  posts                   Post[]          // User can have multiple posts
+  likes                   Like[]          // User can like multiple posts
+  comments                Comment[]       // User can make multiple comments
 
   @@map("users")
 }
 
 model Message {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  content   String?  // Made optional to allow messages with only files
-  fileUrl   String?  // New: URL to the uploaded file (image, audio, video, document)
-  fileType  String?  // New: MIME type of the uploaded file (e.g., "image/jpeg", "audio/webm")
-  senderId  String   @db.ObjectId
-  reciverId String   @db.ObjectId
-  sender    User     @relation("messageSender", references: [id], fields: [senderId])
-  reciver   User     @relation("messageReciver", references: [id], fields: [reciverId])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt // Added updatedAt for consistency and tracking changes
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  content     String?   // Made optional to allow messages with only files
+  fileUrl     String?   // URL to the uploaded file (image, audio, video, document)
+  fileType    String?   // MIME type of the uploaded file (e.g., "image/jpeg", "audio/webm")
+  senderId    String    @db.ObjectId
+  reciverId   String    @db.ObjectId
+  isSeen      Boolean   @default(false) // Added: Field for seen status
+  type        String    @default("text") // Corrected: 'file' changed to 'String' with a default
+
+  sender      User      @relation("messageSender", references: [id], fields: [senderId], onDelete: Cascade)
+  reciver     User      @relation("messageReciver", references: [id], fields: [reciverId], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@map("messages")
+  @@index([senderId])
+  @@index([reciverId])
 }
 
 model Notification {
@@ -60,6 +71,55 @@ model Notification {
   createdAt   DateTime @default(now())
 
   @@map("notifications")
+}
+
+// New: Post model for user posts
+// schema.prisma
+// ... (other models) ...
+
+model Post {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  content     String    // The main text content of the post
+  mediaUrl    String?   // Optional: URL to an uploaded media (image, video)
+  mediaType   String?   // Optional: MIME type of the media (e.g., "image/jpeg", "video/mp4")
+  authorId    String    @db.ObjectId
+  author      User      @relation(fields: [authorId], references: [id]) // Relation to the User who authored the post
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  likes       Like[]    // Posts can have multiple likes
+  comments    Comment[] // Posts can have multiple comments
+
+  @@map("posts")
+}
+
+// ... (other models and enums) ...
+
+// New: Like model for likes on posts
+model Like {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  postId      String    @db.ObjectId
+  post        Post      @relation(fields: [postId], references: [id], onDelete: Cascade) // Relation to the Post being liked
+  userId      String    @db.ObjectId
+  user        User      @relation(fields: [userId], references: [id]) // Relation to the User who liked the post
+  createdAt   DateTime  @default(now())
+
+  @@unique([postId, userId]) // A user can only like a post once
+  @@map("likes")
+}
+
+// New: Comment model for comments on posts
+model Comment {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  content     String    // The text content of the comment
+  authorId    String    @db.ObjectId
+  author      User      @relation(fields: [authorId], references: [id]) // Relation to the User who authored the comment
+  postId      String    @db.ObjectId
+  post        Post      @relation(fields: [postId], references: [id], onDelete: Cascade) // Relation to the Post being commented on
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("comments")
 }
 
 

@@ -22,13 +22,15 @@ export const MessageService = {
         fileType: data.fileType, // Store file type
         senderId: data.senderId,
         reciverId: data.reciverId,
+        isSeen: false, // New messages are initially not seen
       },
     });
     return message;
   },
 
   AllMessage: async (user1Id: string, user2Id: string) => {
-    const messages = prisma.message.findMany({
+    console.log(user1Id, user2Id);
+    const messages = await prisma.message.findMany({
       where: {
         OR: [
           { senderId: user1Id, reciverId: user2Id },
@@ -38,5 +40,23 @@ export const MessageService = {
       orderBy: { createdAt: "asc" },
     });
     return messages;
+  },
+
+  /**
+   * Marks a specific message as seen.
+   * @param messageId The ID of the message to mark as seen.
+   * @returns The updated message object.
+   */
+  markMessageAsSeen: async (messageId: string) => {
+    try {
+      const updatedMessage = await prisma.message.update({
+        where: { id: messageId },
+        data: { isSeen: true },
+      });
+      return updatedMessage;
+    } catch (error) {
+      console.error(`Error marking message ${messageId} as seen:`, error);
+      throw error; // Re-throw the error to be handled by the caller
+    }
   },
 };
