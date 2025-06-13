@@ -30,6 +30,10 @@ model User {
   senderMessages          Message[]      @relation("messageSender")
   reciverMessages         Message[]      @relation("messageReciver")
 
+  posts                   Post[]
+  comments                Comment[]
+  likes                   Like[]
+
   @@map("users")
 }
 
@@ -62,6 +66,47 @@ model Notification {
   @@map("notifications")
 }
 
+/// New Models Added Below
+/// ---
+model Post {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  content   String?
+  imageUrl  String[]  // For post images
+  authorId  String    @db.ObjectId
+  author    User      @relation(fields: [authorId], references: [id])
+  comments  Comment[]
+  likes     Like[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("posts")
+}
+
+model Comment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  content   String
+  authorId  String   @db.ObjectId
+  author    User     @relation(fields: [authorId], references: [id])
+  postId    String   @db.ObjectId
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade) // এখানে onDelete: Cascade যোগ করা হয়েছে
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("comments")
+}
+
+model Like {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  authorId  String   @db.ObjectId
+  author    User     @relation(fields: [authorId], references: [id])
+  postId    String   @db.ObjectId
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade) // এখানে onDelete: Cascade যোগ করা হয়েছে
+  createdAt DateTime @default(now())
+
+  @@unique([authorId, postId]) // A user can only like a post once
+  @@map("likes")
+}
+/// ---
 
 enum UserRoleEnum {
   USER

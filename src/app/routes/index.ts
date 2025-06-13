@@ -1,11 +1,13 @@
 import express,{Request,Response} from 'express';
 import { AuthRouters } from '../modules/Auth/auth.routes';
 import { UserRouters } from '../modules/User/user.routes';
-import { TodoRouters } from '../modules/TodoModule/todo.routes';
+import { PostRouters } from '../modules/Post/post.routes';
 import messageRouter from '../modules/Message/message.routes';
 import { notificationRoute } from '../modules/Notification/notification.routes';
 import { upload } from '../utils/fileUploader';
 import { uploadFile } from '../utils/uploadFile';
+import { LikeRouters } from '../modules/Like/Like.routes';
+import { CommentRouters } from '../modules/Comment/Comment.routes';
 const router = express.Router();
 
 const moduleRoutes = [
@@ -18,8 +20,16 @@ const moduleRoutes = [
     route: UserRouters,
   },
   {
-    path: '/todo',
-    route: TodoRouters,
+    path: '/posts',
+    route: PostRouters,
+  },
+  {
+    path: '/likes',
+    route: LikeRouters,
+  },
+  {
+    path: '/comments',
+    route: CommentRouters,
   },
   {
     path: '/messages',
